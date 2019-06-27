@@ -155,7 +155,7 @@ void Enemy::configure(float2 center, float2 size, GameGrid* grid) {
 
 	game_grid = grid;
 	max_speed = 0.5f;
-	max_health = 10 * sqrt(Time::runtime);
+	max_health = 100 * sqrt(Time::runtime);
 	health = max_health;
 	alive = true;
 }
@@ -165,7 +165,21 @@ void Enemy::update() {
 	bool at_goal;
 	// int2 cell;
 
+	if (position.x > 1) {
+		position.x = 0.999;
+	}
+	if (position.x < -1) {
+		position.x = -.999;
+	}
+	if (position.y > 1) {
+		position.y = 0.999;
+	}
+	if (position.y < -1) {
+		position.y = -.999;
+	}
+
 	game_grid->get_direction(position.x, position.y, x_dir, y_dir, at_goal);
+	// printf("dir: %.2f, %.2f\n", x_dir, y_dir);
 	if (at_goal) {
 		game_grid->remove_enemy(this);
 		alive = false;
@@ -299,7 +313,7 @@ GameGrid::GameGrid(int x, int y, Main* script) {
 		field.directions[i] = ZERO_DIR;
 		enemies[i] = new std::unordered_set<Enemy*>;
 	}
-	field.start = int2(0, x-1);
+	field.start = int2(0, y-1);
 	field.end = int2(x-1, 0);
 	main_script = script;
 	calculate_directions();
@@ -308,7 +322,7 @@ GameGrid::GameGrid(int x, int y, Main* script) {
 void GameGrid::update() {
 	// printf("10\n");
 	if (main_script->frame % 1 == 0) {
-		Enemy* e = Enemy::get_enemy(float2(-.98, .98), float2(0.02, 0.02), this);
+		Enemy* e = Enemy::get_enemy(float2(-.98, .98), float2(0.01, 0.01), this);
 		e->name = "Enemy";
 		main_script->game_objects.push_back(e);
 	}
@@ -503,7 +517,7 @@ void set_directions(int2_pair *end_node,
 void set_directions_new(playfield &field, std::unordered_set<int2_pair> &pairs) {
 	for (const auto& current : pairs) {
 		if (current.prev == NULL) {
-			printf("node is null: %d, %d\n", current.node.x, current.node.y);
+			// printf("node is null: %d, %d\n", current.node.x, current.node.y);
 			continue;
 		}
 		int2_pair next = *current.prev;
@@ -609,11 +623,12 @@ void GameGrid::remove_enemy(Enemy* e) {
 			e
 		)
 	);
-	std::unordered_set<Enemy*>* new_cell = get_enemies(e->cell);
-	if (contains(new_cell, e)) {
-		new_cell->erase(new_cell->find(e));
+	if (0 <= e->cell.y && e->cell.y < field.size.y && 0 <= e->cell.x && e->cell.x < field.size.x) {
+		std::unordered_set<Enemy*>* new_cell = get_enemies(e->cell);
+		if (contains(new_cell, e)) {
+			new_cell->erase(new_cell->find(e));
+		}
 	}
-
 }
 
 void GameGrid::get_direction(float xpos, float ypos,
@@ -622,9 +637,10 @@ void GameGrid::get_direction(float xpos, float ypos,
 	// xpos -= field.world_center.x;
 	// ypos -= field.world_center.y;
 
-	int x_cell = (int) (field.size.x * .5f * (xpos + 1.f));
-	int y_cell = (int) (field.size.y * .5f * (ypos + 1.f));
-	if (x_cell < 0 || x_cell > field.size.x-1 || y_cell < 0 || y_cell > field.size.x - 1) {
+	int x_cell = floor(field.size.x * .5f * (xpos + 1.f));
+	int y_cell = floor(field.size.y * .5f * (ypos + 1.f));
+	if (x_cell < 0 || x_cell > field.size.x-1 || y_cell < 0 || y_cell > field.size.y - 1) {
+		printf("outside of grid: %d, %d\n", x_cell, y_cell);
 		return;
 	}
 	at_goal = (x_cell == field.end.x && y_cell == field.end.y);
@@ -659,22 +675,26 @@ void GameGrid::create_tower(GLFWwindow* window, float xpos, float ypos, std::vec
 		game_objects.push_back(t);
 		calculate_directions();
 	}
-
-
 }
 
 std::unordered_set<Enemy*>* GameGrid::get_enemies(int2 cell) {
-	return enemies[cell.y * field.size.x + cell.x];
+	if (0 <= cell.y && cell.y < field.size.y && 0 <= cell.x && cell.x < field.size.x) {
+		return enemies[cell.y * field.size.x + cell.x];
+	}
+	return NULL;
 }
 
 
 void GameGrid::change_cell(Enemy* e) {
-	std::unordered_set<Enemy*>* old_cell = get_enemies(e->last_cell);
-	std::unordered_set<Enemy*>* new_cell = get_enemies(e->cell);
-	if (contains(old_cell, e)) {
-		old_cell->erase(old_cell->find(e));
+	if (0 <= e->last_cell.y && e->last_cell.y < field.size.y && 0 <= e->last_cell.x && e->last_cell.x < field.size.x) {
+		std::unordered_set<Enemy*>* old_cell = get_enemies(e->last_cell);
+		if (contains(old_cell, e)) {
+			old_cell->erase(old_cell->find(e));
+		}
 	}
-	new_cell->insert(e);
-	// printf("moving enemy: %lu/%lu\n", old_cell->size(), new_cell->size());
+	if (0 <= e->cell.y && e->cell.y < field.size.y && 0 <= e->cell.x && e->cell.x < field.size.x) {
+		std::unordered_set<Enemy*>* new_cell = get_enemies(e->cell);
+		new_cell->insert(e);
+	}
 
 }

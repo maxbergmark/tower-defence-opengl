@@ -43,7 +43,7 @@ void Main::start() {
 }
 
 void Main::create_gamegrid() {
-	game_grid = new GameGrid(21, 20, this);
+	game_grid = new GameGrid(21, 22, this);
 	game_objects.push_back(game_grid);
 }
 
