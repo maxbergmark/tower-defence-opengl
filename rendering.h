@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 
-#define 	GLFW_TRUE   1
+#define GLFW_TRUE   1
 
 class Rendering {
 
@@ -38,7 +38,7 @@ public:
 	// void find_cell(GLFWwindow* window, float xpos, float ypos,
 		// float &x_left, float &x_right, float &y_top, float &y_bottom);
 	void draw_quads(GLFWwindow* window, GLuint program, GLint mvp_location);
-	public:
-		int startGL(Main* script);
+	// public:
+	int startGL(Main* script);
 
 };

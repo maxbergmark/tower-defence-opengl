@@ -44,6 +44,7 @@ void Main::start() {
 
 void Main::create_gamegrid() {
 	game_grid = new GameGrid(21, 22, this);
+	// game_grid = new GameGrid(41, 42, this);
 	game_objects.push_back(game_grid);
 }
 
@@ -56,6 +57,9 @@ void Main::update(GLFWwindow* window, GLuint program, GLint mvp_location) {
 	Time::update_time();
 	// printf("1\n");
 	// printf("count: %d/%d\n", game_objects.size(), game_objects.capacity());
+	struct timeval t0, t1, t2;
+
+	gettimeofday(&t0, NULL);
 	for (auto g : game_objects) {
 		// std::cout << g << "\t" << std::endl;
 		// printf("name: %s", g->name);
@@ -66,11 +70,15 @@ void Main::update(GLFWwindow* window, GLuint program, GLint mvp_location) {
 	for (auto g : game_objects) {
 		g->late_update();
 	}
+	gettimeofday(&t1, NULL);
+	// printf("update time: %.3fms\n", (t1.tv_usec - t0.tv_usec) * 1e-3);
 	// printf("3\n");
 
 	for (auto g : game_objects) {
 		g->draw(window, program, mvp_location);
 	}
+	gettimeofday(&t2, NULL);
+	// printf("draw time: %.3fms\n", (t2.tv_usec - t1.tv_usec) * 1e-3);
 	// printf("4\n");
 	frame++;
 }

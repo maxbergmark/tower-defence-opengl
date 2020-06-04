@@ -19,19 +19,28 @@ static const char* vertex_shader_text =
 "uniform mat4 MVP;\n"
 "attribute vec3 vCol;\n"
 "attribute vec2 vPos;\n"
+"attribute vec2 vTex;\n"
 "varying vec3 color;\n"
+"varying vec2 tex;\n"
 "void main()\n"
 "{\n"
 "	gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
 // "	gl_Position = vec4(vPos, 0.0, 1.0);\n"
 "	color = vCol;\n"
+"	tex = vTex;\n"
 "}\n";
 
 static const char* fragment_shader_text =
 "varying vec3 color;\n"
+"varying vec2 tex;\n"
 "void main()\n"
 "{\n"
-"	gl_FragColor = vec4(color, 1.0);\n"
+"	float r = (tex.x - .5f) * (tex.x - .5f) + (tex.y - .5f) * (tex.y - .5f);"
+"	float a = r < 0.25f;"
+// "	a *= color.z > 0;"
+// "	color *= (tex.x > .05) & (tex.x < .95);"
+// "	color *= (tex.y > .05) & (tex.y < .95);"
+"	gl_FragColor = vec4(color, a);\n"
 "}\n";
 
 void Rendering::draw_triangle(GLFWwindow* window, GLuint program, GLint mvp_location, mat4x4 m) {
@@ -87,10 +96,12 @@ void Rendering::key_callback(GLFWwindow* window, int key, int scancode, int acti
 }
 
 void Rendering::key_poll(GLFWwindow* window) {
+/*
 	int w_state = glfwGetKey(window, GLFW_KEY_W);
 	int a_state = glfwGetKey(window, GLFW_KEY_A);
 	int s_state = glfwGetKey(window, GLFW_KEY_S);
 	int d_state = glfwGetKey(window, GLFW_KEY_D);
+*/
 }
 
 
@@ -99,7 +110,7 @@ void Rendering::mouse_button_callback(GLFWwindow* window, int button, int action
     double xpos, ypos;
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		glfwGetCursorPos(window, &xpos, &ypos);
-		printf("position: %.2f, %.2f\n", xpos, ypos);
+		// printf("position: %.2f, %.2f\n", xpos, ypos);
 		get_instance().main_script->create_tower(window, (float)xpos, (float)ypos);
 	}
 }
@@ -113,7 +124,7 @@ int Rendering::startGL(Main* script) {
 
 	GLFWwindow* window;
 	GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-	GLint mvp_location, vpos_location, vcol_location;
+	GLint mvp_location, vpos_location, vcol_location, vtex_location;
 
 	glfwSetErrorCallback(error_callback);
 
@@ -131,7 +142,9 @@ int Rendering::startGL(Main* script) {
 	}
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(Rendering::WIDTH, Rendering::HEIGHT, "Tower Defence", NULL, NULL);
+	window = glfwCreateWindow(Rendering::WIDTH, Rendering::HEIGHT, 
+		"Tower Defence", NULL, NULL);
+	
 	if (!window)
 	{
 		glfwTerminate();
@@ -162,6 +175,7 @@ int Rendering::startGL(Main* script) {
 	mvp_location = glGetUniformLocation(program, "MVP");
 	vpos_location = glGetAttribLocation(program, "vPos");
 	vcol_location = glGetAttribLocation(program, "vCol");
+	vtex_location = glGetAttribLocation(program, "vTex");
 
 	glEnableVertexAttribArray(vpos_location);
 	glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
@@ -169,6 +183,12 @@ int Rendering::startGL(Main* script) {
 	glEnableVertexAttribArray(vcol_location);
 	glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
 						  sizeof(vert), (void*) (sizeof(float) * 2));
+	glEnableVertexAttribArray(vtex_location);
+	glVertexAttribPointer(vtex_location, 2, GL_FLOAT, GL_FALSE,
+						  sizeof(vert), (void*) (sizeof(float) * 5));
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	double previous_time = glfwGetTime();
 	int frame_count = 0;

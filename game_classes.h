@@ -19,6 +19,7 @@ public:
 	virtual void late_update() {}
 	std::string name;
 	float2 position;
+	float2 size;
 
 	GameObject() {}
 	virtual void draw(GLFWwindow* window, GLuint program, GLint mvp_location) const {
@@ -28,6 +29,11 @@ public:
 
 
 class Tower : public GameObject {
+
+private:
+	Tower(float2 center, float2 size, GameGrid* grid);
+	void configure(float2 center, float2 size, GameGrid* grid);
+
 public:
 	quad q;
 	float speed;
@@ -37,23 +43,37 @@ public:
 	int2 cell;
 	GameGrid* game_grid;
 	Enemy* current_target;
+	int pool_idx;
 
-	Tower(float2 center, float2 size, GameGrid* grid);
+	static int pool_size;
+	static int active_towers;
+	static std::vector<Tower*> tower_pool;
 	void update();
 	void late_update();
 	void draw(GLFWwindow* window, GLuint program, GLint mvp_location) const;
 
 	bool out_of_range();
 	void find_new_target();
+
+	static void create_tower_pool(int n, GameGrid* grid);
+	static void update_towers();
+	static void late_update_towers();
+	static void draw_towers(GLFWwindow* window, GLuint program, GLint mvp_location);
+	static bool initialized;
+	static Tower* add_tower(float2 center, float2 size, GameGrid* grid);
+	static void remove_tower(Tower* t);
+
 };
 
 class Enemy : public GameObject {
+
 private:
 	Enemy(float2 center, float2 size, GameGrid* grid);
 	void configure(float2 center, float2 size, GameGrid* grid);
+	void align_verts() const;
+
 public:
 	quad q;
-
 	float2 velocity;
 	int2 cell;
 	int2 last_cell;
@@ -62,12 +82,20 @@ public:
 	float health;
 	float max_health;
 	bool alive;
-	GameGrid* game_grid;
+	int pool_idx;
+	static GameGrid* game_grid;
+	static int pool_size;
+	static int active_enemies;
 	static std::vector<Enemy*> enemy_pool;
-	static void create_enemy_pool(int n);
+	static std::vector<quad> enemy_quads;
+
+	static void create_enemy_pool(int n, GameGrid* grid);
+	static void update_enemies();
+	static void late_update_enemies();
+	static void draw_enemies(GLFWwindow* window, GLuint program, GLint mvp_location);
 	static bool initialized;
-	static Enemy* get_enemy(float2 center, float2 size, GameGrid* grid);
-	static void return_enemy(Enemy* e);
+	static void add_enemy(float2 center, float2 size, GameGrid* grid);
+	static void remove_enemy(Enemy* e);
 
 	void update();
 	void late_update();
@@ -78,7 +106,7 @@ public:
 
 class GameGrid : public GameObject {
 public:
-	// std::vector<Tower> towers;
+	std::vector<Tower*> towers;
 	std::vector<std::unordered_set<Enemy*>*> enemies;
 	Main* main_script;
 	playfield field;
@@ -88,7 +116,8 @@ public:
 	void draw(GLFWwindow* window, GLuint program, GLint mvp_location) const;
 
 	void calculate_directions();
-	void find_cell(float xpos, float ypos,
+	Tower* find_tower(int2 cell);
+	int2 find_cell(float xpos, float ypos,
 		float2 &center, float2 &size, bool &should_place);
 	void get_direction(float xpos, float ypos, float &x_dir, float &y_dir, bool &at_goal);
 	void get_cell(float2 pos, int2 &cell);
