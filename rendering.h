@@ -2,13 +2,12 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "linmath.h"
-#include "helper_structs.h"
-#include "main.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "linmath.h"
+#include "helper_structs.h"
+#include "main.h"
 
 #define GLFW_TRUE   1
 
@@ -20,8 +19,6 @@ class Rendering {
 	static const int HEIGHT = 1080;
 	Main* main_script;
 	
-	// static Rendering* instance;
-	// static Rendering* get_instance();
 public:
 	static Rendering& get_instance() {
 		static Rendering instance; // lazy singleton, instantiated on first use

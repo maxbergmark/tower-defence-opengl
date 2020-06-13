@@ -1,15 +1,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "linmath.h"
-#include "helper_structs.h"
-#include "rendering.h"
-#include "main.h"
-
-#include<iostream>
+#include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
 
+#include "linmath.h"
+#include "helper_structs.h"
+#include "rendering.h"
+#include "main.h"
 
 #define 	GLFW_TRUE   1
 #define		V_SYNC		true

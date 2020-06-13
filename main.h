@@ -1,10 +1,11 @@
 #pragma once
 
 #include <vector>
-#include "game_classes.h"
-#include "helper_structs.h"
 #include <utility>
 #include <memory>
+
+#include "game_classes.h"
+#include "helper_structs.h"
 
 class Rendering;
 

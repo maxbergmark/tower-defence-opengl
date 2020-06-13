@@ -1,24 +1,17 @@
 #include <sys/time.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "linmath.h"
 #include <vector>
-#include "game_classes.h"
-#include "helper_structs.h"
-#include "rendering.h"
-#include "main.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
 #include <iostream>
 
-
-
-// std::vector<Tower> towers;
-// std::vector<Enemy> enemies;
-
-class Rendering;
+#include "linmath.h"
+#include "game_classes.h"
+#include "helper_structs.h"
+#include "rendering.h"
+#include "main.h"
 
 double Time::time;
 double Time::delta;
